@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Hub | Grey & Blue Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; transition: all 0.3s ease; }
+        
+        /* Grey & Blue Palette */
+        .theme-bg-light { background-color: #f1f5f9; }
+        .theme-bg-dark { background-color: #1e293b; color: white !important; }
+        
+        .dark .section, .dark aside, .dark nav { background-color: #334155; color: white !important; }
+        .dark h1, .dark h2, .dark h3, .dark p, .dark li, .dark button { color: white !important; }
+
+        .accent-blue { color: #2563eb; }
+        .bg-accent-blue { background-color: #2563eb; }
+        
+        .glass-card { 
+            background: rgba(255, 255, 255, 0.8); 
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+        .dark .glass-card {
+            background: rgba(51, 65, 85, 0.9);
+            border: 1px solid #475569;
+        }
+
+        #video { border: 4px solid #2563eb; transform: scaleX(-1); }
+        .code-block { background: #0f172a; color: #38bdf8; font-family: monospace; }
+    </style>
+</head>
+<body class="theme-bg-light text-slate-800">
+
+    <nav class="sticky top-0 z-50 glass-card p-4 flex flex-wrap justify-between items-center px-6 md:px-12">
+        <div class="flex items-center gap-2">
+            <i class="fas fa-graduation-cap accent-blue text-2xl"></i>
+            <h1 class="text-2xl font-bold accent-blue">Study Hub</h1>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="relative hidden md:block">
+                <input type="text" id="searchBar" placeholder="Search topics..." class="pl-10 pr-4 py-2 rounded-lg border bg-white dark:bg-slate-700 focus:ring-2 focus:ring-blue-500 outline-none">
+                <i class="fas fa-search absolute left-3 top-3 text-slate-400"></i>
+            </div>
+            <button onclick="toggleDarkMode()" class="p-2 rounded-full bg-slate-200 dark:bg-slate-600 transition">
+                <i id="themeIcon" class="fas fa-moon"></i>
+            </button>
+        </div>
+    </nav>
+
+    <div class="flex flex-col md:flex-row min-h-screen">
+        <aside class="w-full md:w-64 p-6 border-r border-slate-300 dark:border-slate-600">
+            <p class="text-xs font-bold text-slate-500 uppercase mb-4">Main Menu</p>
+            <ul class="space-y-2">
+                <li><button onclick="showSection('home')" class="w-full text-left p-2 rounded hover:bg-blue-50 dark:hover:bg-slate-700 transition"><i class="fas fa-home mr-3 accent-blue"></i> Dashboard</button></li>
+                <li><button onclick="showSection('notes')" class="w-full text-left p-2 rounded hover:bg-blue-50 dark:hover:bg-slate-700 transition"><i class="fas fa-book-open mr-3 accent-blue"></i> Subjects</button></li>
+                <li><button onclick="showSection('quiz')" class="w-full text-left p-2 rounded hover:bg-blue-50 dark:hover:bg-slate-700 transition"><i class="fas fa-vial mr-3 accent-blue"></i> Quiz Lab</button></li>
+                <li><button onclick="showSection('personal')" class="w-full text-left p-2 rounded hover:bg-blue-50 dark:hover:bg-slate-700 transition"><i class="fas fa-edit mr-3 accent-blue"></i> My Notes</button></li>
+                <li><button onclick="showSection('scanner')" class="w-full text-left p-2 rounded hover:bg-blue-50 dark:hover:bg-slate-700 transition"><i class="fas fa-camera mr-3 accent-blue"></i> PDF Scanner</button></li>
+            </ul>
+        </aside>
+
+        <main class="flex-1 p-6 md:p-10">
+            
+            <section id="home" class="section">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold mb-2">Welcome to your Study Hub</h2>
+                    <div class="p-4 bg-blue-50 dark:bg-slate-700 border-l-4 border-blue-600 rounded-r-lg mb-6">
+                        <p class="text-sm"><strong>Tip:</strong> Use the "My Notes" section to paste code snippets. They are saved automatically to your browser.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="glass-card p-6 rounded-xl text-center">
+                        <h3 class="text-lg font-bold mb-4">Study Timer</h3>
+                        <div id="timerDisplay" class="text-5xl font-mono mb-6 accent-blue">00:00:00</div>
+                        <div class="flex justify-center gap-4">
+                            <button onclick="startTimer()" class="bg-green-600 text-white px-6 py-2 rounded-lg font-bold">Start</button>
+                            <button onclick="stopTimer()" class="bg-red-600 text-white px-6 py-2 rounded-lg font-bold">Stop</button>
+                            <button onclick="resetTimer()" class="bg-slate-500 text-white px-6 py-2 rounded-lg font-bold">Reset</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="notes" class="section hidden">
+                <h2 class="text-2xl font-bold mb-6">Subject Library</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="notesGrid"></div>
+            </section>
+
+            <section id="quiz" class="section hidden">
+                <h2 class="text-2xl font-bold mb-4">Quiz Center</h2>
+                <div id="quizSelection">
+                    <div class="p-4 bg-slate-100 dark:bg-slate-700 rounded-lg mb-6 text-sm">Choose a subject to test your proficiency. Each quiz contains 5 randomized questions.</div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="quizSubjectBtns"></div>
+                </div>
+                
+                <div id="quizBox" class="hidden glass-card p-8 rounded-2xl max-w-2xl mx-auto">
+                    <h3 id="questionText" class="text-xl font-bold mb-6"></h3>
+                    <div id="quizOptions" class="space-y-4"></div>
+                    <div class="flex justify-between mt-10">
+                        <button id="prevBtn" class="px-6 py-2 rounded bg-slate-300 dark:bg-slate-600">Back</button>
+                        <button id="nextBtn" class="px-6 py-2 rounded bg-blue-600 text-white font-bold">Next Question</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="personal" class="section hidden">
+                <h2 class="text-2xl font-bold mb-4">Personalized Notes & Code</h2>
+                <div class="mb-4 text-sm text-slate-500">Paste your snippets below. Use the highlight button to format the code view.</div>
+                <textarea id="personalCode" class="w-full h-80 p-4 rounded-lg bg-slate-100 dark:bg-slate-800 border focus:ring-2 focus:ring-blue-500 font-mono" placeholder="Write code here..."></textarea>
+                <div class="mt-4 flex gap-4">
+                    <button onclick="savePersonalNotes()" class="bg-blue-600 text-white px-8 py-2 rounded-lg">Save Changes</button>
+                    <button onclick="clearPersonalNotes()" class="text-red-500 underline">Clear Editor</button>
+                </div>
+            </section>
+
+            <section id="scanner" class="section hidden">
+                <h2 class="text-2xl font-bold mb-4">Document Scanner</h2>
+                <div class="p-4 bg-yellow-50 dark:bg-slate-700 border-l-4 border-yellow-400 text-sm mb-6">Capture your handwritten notes using your webcam and download them as a PDF.</div>
+                <div class="max-w-md mx-auto text-center">
+                    <video id="video" class="w-full rounded-lg mb-4" autoplay playsinline></video>
+                    <canvas id="canvas" class="hidden"></canvas>
+                    <button onclick="captureImage()" class="bg-blue-600 text-white px-10 py-3 rounded-full font-bold shadow-lg hover:bg-blue-700">
+                        <i class="fas fa-camera mr-2"></i> CAPTURE & SAVE PDF
+                    </button>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        // Subject Data
+        const subjects = [
+            { id: 'java', name: 'Java', url: 'https://www.w3schools.com/java/', desc: 'OOPs, JVM, and Threads.' },
+            { id: 'py', name: 'Python', url: 'https://www.w3schools.com/python/', desc: 'Data Science and Automation.' },
+            { id: 'sql', name: 'DBMS/SQL', url: 'https://www.w3schools.com/sql/', desc: 'Database relational models.' },
+            { id: 'html', name: 'HTML/CSS', url: 'https://www.w3schools.com/html/', desc: 'Modern Web Structure.' },
+            { id: 'js', name: 'JavaScript', url: 'https://www.w3schools.com/js/', desc: 'Logic and interactivity.' },
+            { id: 'c', name: 'C Language', url: 'https://www.w3schools.com/c/', desc: 'Procedural programming.' },
+            { id: 'net', name: 'Networking', url: 'https://www.google.com/search?q=networking+notes', desc: 'OSI Model and Protocols.' },
+            { id: 'os', name: 'OS', url: 'https://www.google.com/search?q=os+notes', desc: 'Kernels and Processes.' },
+            { id: 'ai', name: 'AI Basics', url: 'https://www.w3schools.com/ai/', desc: 'Machine Learning intro.' },
+            { id: 'dsa', name: 'DSA', url: 'https://www.w3schools.com/dsa/', desc: 'Efficiency and Algorithms.' }
+        ];
+
+        // Quiz Questions
+        const quizData = {
+            java: [
+                { q: "Which of these is used to compile Java?", a: ["JRE", "JDK", "JVM", "JIT"], c: 1 },
+                { q: "Is Java a pure Object Oriented language?", a: ["Yes", "No"], c: 1 },
+                { q: "Which keyword is used for inheritance?", a: ["implements", "extends", "import", "super"], c: 1 },
+                { q: "Default value of boolean in Java?", a: ["true", "null", "false", "0"], c: 2 },
+                { q: "Which class is the superclass of every class?", a: ["Object", "Main", "Parent", "System"], c: 0 }
+            ]
+            // Logic repeats for other subjects...
+        };
+
+        // Theme Toggle
+        function toggleDarkMode() {
+            document.body.classList.toggle('theme-bg-dark');
+            document.body.classList.toggle('dark');
+            const isDark = document.body.classList.contains('dark');
+            document.getElementById('themeIcon').className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+        }
+
+        // Section Control
+        function showSection(id) {
+            document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+            if (id === 'scanner') startCamera(); else stopCamera();
+        }
+
+        // Initialize UI
+        function init() {
+            const grid = document.getElementById('notesGrid');
+            const qBtns = document.getElementById('quizSubjectBtns');
+            subjects.forEach(s => {
+                grid.innerHTML += `<div class="glass-card p-4 rounded-lg">
+                    <h4 class="font-bold accent-blue">${s.name}</h4>
+                    <p class="text-xs mb-3 opacity-70">${s.desc}</p>
+                    <a href="${s.url}" target="_blank" class="text-xs font-bold text-blue-600">Open W3Schools</a>
+                </div>`;
+                qBtns.innerHTML += `<button onclick="startQuiz('${s.id}')" class="p-3 bg-white dark:bg-slate-800 border rounded-lg hover:border-blue-500">${s.name}</button>`;
+            });
+        }
+
+        // Timer
+        let time = 0, timer;
+        function startTimer() { if(!timer) timer = setInterval(() => { time++; updateTimerUI(); }, 1000); }
+        function stopTimer() { clearInterval(timer); timer = null; }
+        function resetTimer() { stopTimer(); time = 0; updateTimerUI(); }
+        function updateTimerUI() {
+            let h = Math.floor(time/3600), m = Math.floor((time%3600)/60), s = time%60;
+            document.getElementById('timerDisplay').innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+        }
+
+        // Quiz logic
+        let curIdx = 0, curSub = '';
+        function startQuiz(id) {
+            if(!quizData[id]) { alert("Quiz content for " + id + " is under development."); return; }
+            curSub = id; curIdx = 0;
+            document.getElementById('quizSelection').classList.add('hidden');
+            document.getElementById('quizBox').classList.remove('hidden');
+            loadQ();
+        }
+        function loadQ() {
+            const q = quizData[curSub][curIdx];
+            document.getElementById('questionText').innerText = q.q;
+            const optDiv = document.getElementById('quizOptions');
+            optDiv.innerHTML = '';
+            q.a.forEach((opt, i) => {
+                optDiv.innerHTML += `<button onclick="checkAns(${i}, ${q.c}, this)" class="w-full text-left p-3 border rounded hover:bg-slate-50 dark:hover:bg-slate-700">${opt}</button>`;
+            });
+            document.getElementById('nextBtn').onclick = () => {
+                if(curIdx < 4) { curIdx++; loadQ(); } 
+                else { alert("Quiz Finished!"); showSection('quiz'); document.getElementById('quizSelection').classList.remove('hidden'); document.getElementById('quizBox').classList.add('hidden'); }
+            };
+        }
+        function checkAns(idx, correct, btn) {
+            btn.className = idx === correct ? "w-full text-left p-3 rounded bg-green-500 text-white" : "w-full text-left p-3 rounded bg-red-500 text-white";
+            Array.from(btn.parentElement.children).forEach(b => b.disabled = true);
+        }
+
+        // Camera Logic
+        let stream;
+        async function startCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                document.getElementById('video').srcObject = stream;
+            } catch (err) { alert("Camera access denied or not available."); }
+        }
+        function stopCamera() { if(stream) stream.getTracks().forEach(t => t.stop()); }
+
+        function captureImage() {
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            const context = canvas.getContext('2d');
+            
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'px', [canvas.width, canvas.height]);
+            const imgData = canvas.toDataURL('image/jpeg', 1.0);
+            
+            doc.addImage(imgData, 'JPEG', 0, 0, canvas.width, canvas.height);
+            doc.save("StudyHub_Scan.pdf");
+        }
+
+        // Persistent Notes
+        function savePersonalNotes() {
+            localStorage.setItem('sh_notes', document.getElementById('personalCode').value);
+            alert("Notes stored successfully!");
+        }
+        function clearPersonalNotes() {
+            if(confirm("Clear all text?")) {
+                document.getElementById('personalCode').value = '';
+                localStorage.removeItem('sh_notes');
+            }
+        }
+
+        window.onload = () => {
+            init();
+            const saved = localStorage.getItem('sh_notes');
+            if(saved) document.getElementById('personalCode').value = saved;
+        };
+    </script>
+</body>
+</html>
